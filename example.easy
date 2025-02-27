@@ -1,0 +1,39 @@
+storage number a = 5
+storage float pi = 3.14
+storage text greeting = text Hello
+storage boolean flag = true
+
+print storage a
+print storage pi
+print storage greeting
+print storage flag
+
+print upper text hello
+print lower text WORLD
+print concat text Hello, text World!
+print pow 2,3
+print len text HelloWorld
+print type text HelloWorld
+
+print random number 1 to 10
+print random text red, blue, green
+print random boolean
+
+if a > 3 is true:
+    print text a is greater than 3
+end
+
+if a < 3 is false:
+    print text a is not less than 3
+end
+
+while a < 8 do
+    storage number a = a + 1
+    print storage a
+end
+
+for 1 to 3 do
+    print text In for loop iteration
+end
+
+end program
