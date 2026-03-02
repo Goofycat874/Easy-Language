@@ -1,19 +1,2 @@
-storage text greeting = text Hello, World!
-print greeting
-storage number a = 5
-storage number b = 10
-print maxof a b
-if a < b is true:
-    print text a is less than b
-end
-for 1 to 3 do
-    print random number 1 to 100
-end
-storage array mylist = createarray 1 2 3 4 5
-print reverse list mylist
-storage dictionary info = createdictionary key name value John key age value 30
-print info
-writefile file sample.txt text This is a sample text.
-appendfile file sample.txt text Additional content.
-print currentdate
-print currenttime
+variable name is "meow meow meow"
+print name
