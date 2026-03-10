@@ -22,11 +22,24 @@ _COLOR_SUPPORT = hasattr(sys.stderr, "isatty") and sys.stderr.isatty()
 def _c(code: str, text: str) -> str:
     return f"\033[{code}m{text}\033[0m" if _COLOR_SUPPORT else text
 
-def _red(t: str) -> str: return _c("1;31", t)
-def _yellow(t: str) -> str: return _c("1;33", t)
-def _cyan(t: str) -> str: return _c("36", t)
-def _dim(t: str) -> str: return _c("2", t)
-def _bold(t: str) -> str: return _c("1", t)
+def _red(text: str) -> str:
+    return _c("1;31", text)
+
+
+def _yellow(text: str) -> str:
+    return _c("1;33", text)
+
+
+def _cyan(text: str) -> str:
+    return _c("36", text)
+
+
+def _dim(text: str) -> str:
+    return _c("2", text)
+
+
+def _bold(text: str) -> str:
+    return _c("1", text)
 
 # ─── Error classes ────────────────────────────────────────────────────────────
 
@@ -577,13 +590,21 @@ def compile_builtin(tokens: list[str]) -> str:
 
 def compile_cond(cond_line: str) -> str:
     line = cond_line.rstrip()
-    if line.endswith(":"): line = line[:-1].rstrip()
-    if line.endswith(" is true"): line = line[:-len(" is true")].strip()
+
+    if line.endswith(":"):
+        line = line[:-1].rstrip()
+
+    if line.endswith(" is true"):
+        line = line[:-len(" is true")].strip()
     elif line.endswith(" is false"):
         expr = line[:-len(" is false")].strip()
-        if not expr: raise Exception("Empty condition before 'is false'")
+        if not expr:
+            raise Exception("Empty condition before 'is false'")
         return f"not ({expr})"
-    if not line: raise Exception("Missing condition")
+
+    if not line:
+        raise Exception("Missing condition")
+
     return line
 
 
@@ -592,43 +613,62 @@ def compile_cond(cond_line: str) -> str:
 def compile_input(tokens: list[str]) -> tuple[str, bool, str]:
     if len(tokens) < 2:
         raise Exception("input syntax: input [type] <variable> [prompt text <message>]")
-    typed = None; idx = 1
+    typed = None
+    idx = 1
     if tokens[idx] in ("number", "integer", "float", "text", "boolean"):
         typed = tokens[idx]; idx += 1
-    if idx >= len(tokens): raise Exception("input: missing variable name")
+    if idx >= len(tokens):
+        raise Exception("input: missing variable name")
     var = tokens[idx]
-    if not var.isidentifier(): raise Exception(f"Invalid variable name '{var}'")
+    if not var.isidentifier():
+        raise Exception(f"Invalid variable name '{var}'")
     idx += 1
     prompt = repr("")
     if idx < len(tokens):
-        if tokens[idx] != "prompt": raise Exception("input: use 'prompt' before the message")
+        if tokens[idx] != "prompt":
+            raise Exception("input: use 'prompt' before the message")
         pt = tokens[idx + 1:]
-        if not pt: raise Exception("input prompt: missing text")
+        if not pt:
+            raise Exception("input prompt: missing text")
         ptxt = join_tok(pt[1:]) if pt[0] == "text" else join_tok(pt)
-        if ptxt and not ptxt.endswith(" "): ptxt += " "
+        if ptxt and not ptxt.endswith(" "):
+            ptxt += " "
         prompt = repr(ptxt)
     raw = f"input({prompt})"
     helper = False
-    if typed in ("number", "integer"): val = f"int({raw})"
-    elif typed == "float": val = f"float({raw})"
-    elif typed == "boolean": val = f"_dsl_parse_boolean({raw})"; helper = True
-    else: val = raw
+    if typed in ("number", "integer"):
+        val = f"int({raw})"
+    elif typed == "float":
+        val = f"float({raw})"
+    elif typed == "boolean":
+        val = f"_dsl_parse_boolean({raw})"
+        helper = True
+    else:
+        val = raw
     return f"{var} = {val}", helper, var
 
 
 # ─── Assignment helpers ───────────────────────────────────────────────────────
 
 def should_keep_expr(toks: list[str], known: set[str], raw: str = "") -> bool:
-    if any(t in EXPR_OPS for t in toks): return True
-    if any(t in known for t in toks): return True
+    if any(t in EXPR_OPS for t in toks):
+        return True
+    if any(t in known for t in toks):
+        return True
     # Check the raw string for structural patterns (brackets, parens, function calls)
     raw_s = raw.strip()
-    if raw_s and (raw_s.startswith(("[", "{", "(")) or "(" in raw_s or ")" in raw_s): return True
-    if len(toks) != 1: return False
-    t = toks[0]; lo = t.lower()
-    if lo in LITERAL_KW: return True
-    if is_numeric(t): return True
-    if t.startswith(("[", "{", "(")) or "(" in t or ")" in t: return True
+    if raw_s and (raw_s.startswith(("[", "{", "(")) or "(" in raw_s or ")" in raw_s):
+        return True
+    if len(toks) != 1:
+        return False
+    t = toks[0]
+    lo = t.lower()
+    if lo in LITERAL_KW:
+        return True
+    if is_numeric(t):
+        return True
+    if t.startswith(("[", "{", "(")) or "(" in t or ")" in t:
+        return True
     return False
 
 
@@ -970,7 +1010,7 @@ def run_code(code: str) -> None:
 
 
 def render_commands() -> str:
-    return """Easy Language v3.0 — Command Reference
+    return f"""Easy Language v{VERSION} — Command Reference
 
 VARIABLES
   let name = value              Create a variable (strings auto-detected)
@@ -980,7 +1020,7 @@ VARIABLES
 OUTPUT
   say Hello World               Print literal text
   print expression              Print any expression or variable
-  print "Hello {name}"          String interpolation
+  print "Hello {{name}}"          String interpolation
 
 CONDITIONS
   if x > 5:                     Simple condition (no 'is true' needed!)
@@ -1071,17 +1111,25 @@ def handle_run(args) -> int:
     try:
         src, code = compile_file(args.input)
     except FileNotFoundError:
-        print(_red(f"✗ File not found: {args.input}"), file=sys.stderr); return 1
+        print(_red(f"✗ File not found: {args.input}"), file=sys.stderr)
+        return 1
     except EasyError as e:
-        print(format_error(e, read_source(args.input), args.input), file=sys.stderr); return 1
-    if args.show_python: print(code)
-    if args.save_python: write_file(args.save_python, code); print(f"Saved Python to {args.save_python}")
+        print(format_error(e, read_source(args.input), args.input), file=sys.stderr)
+        return 1
+    if args.show_python:
+        print(code)
+    if args.save_python:
+        write_file(args.save_python, code)
+        print(f"Saved Python to {args.save_python}")
     try:
         run_code(code)
     except Exception as exc:
-        if args.traceback: raise
-        print(_red(f"✗ Runtime error: {exc}"), file=sys.stderr); return 1
-    if not args.quiet: print(_dim(f"✓ '{args.input}' executed successfully."))
+        if args.traceback:
+            raise
+        print(_red(f"✗ Runtime error: {exc}"), file=sys.stderr)
+        return 1
+    if not args.quiet:
+        print(_dim(f"✓ '{args.input}' executed successfully."))
     return 0
 
 
@@ -1089,12 +1137,17 @@ def handle_compile(args) -> int:
     try:
         _, code = compile_file(args.input)
     except FileNotFoundError:
-        print(_red(f"✗ File not found: {args.input}"), file=sys.stderr); return 1
+        print(_red(f"✗ File not found: {args.input}"), file=sys.stderr)
+        return 1
     except EasyError as e:
-        print(format_error(e, read_source(args.input), args.input), file=sys.stderr); return 1
+        print(format_error(e, read_source(args.input), args.input), file=sys.stderr)
+        return 1
     out = args.output or (str(Path(args.input).with_suffix(".py")) if not args.stdout else None)
-    if out: write_file(out, code); print(f"Compiled to {out}")
-    if args.stdout: print(code)
+    if out:
+        write_file(out, code)
+        print(f"Compiled to {out}")
+    if args.stdout:
+        print(code)
     return 0
 
 
@@ -1102,9 +1155,11 @@ def handle_check(args) -> int:
     try:
         src, code = compile_file(args.input)
     except FileNotFoundError:
-        print(_red(f"✗ File not found: {args.input}"), file=sys.stderr); return 1
+        print(_red(f"✗ File not found: {args.input}"), file=sys.stderr)
+        return 1
     except EasyError as e:
-        print(format_error(e, read_source(args.input), args.input), file=sys.stderr); return 1
+        print(format_error(e, read_source(args.input), args.input), file=sys.stderr)
+        return 1
     print(f"✓ {args.input}: OK")
     if args.show_python: print(code)
     return 0
@@ -1113,9 +1168,11 @@ def handle_check(args) -> int:
 def handle_new(args) -> int:
     t = Path(args.path)
     if t.exists() and not args.force:
-        print(_red(f"✗ File exists: {t}. Use --force to overwrite."), file=sys.stderr); return 1
+        print(_red(f"✗ File exists: {t}. Use --force to overwrite."), file=sys.stderr)
+        return 1
     write_file(str(t), STARTER_TEMPLATE.format(filename=t.name))
-    print(f"✓ Created {t}"); return 0
+    print(f"✓ Created {t}")
+    return 0
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -1129,13 +1186,17 @@ def build_parser() -> argparse.ArgumentParser:
     rp.add_argument("--quiet", action="store_true")
     rp.add_argument("--traceback", action="store_true")
     cp = sp.add_parser("compile", help="Compile .easy to Python")
-    cp.add_argument("input"); cp.add_argument("-o", "--output"); cp.add_argument("--stdout", action="store_true")
+    cp.add_argument("input")
+    cp.add_argument("-o", "--output")
+    cp.add_argument("--stdout", action="store_true")
     ck = sp.add_parser("check", help="Validate .easy syntax")
-    ck.add_argument("input"); ck.add_argument("--show-python", action="store_true")
+    ck.add_argument("input")
+    ck.add_argument("--show-python", action="store_true")
     sp.add_parser("repl", help="Interactive REPL")
     sp.add_parser("commands", help="Show command reference")
     np = sp.add_parser("new", help="Create starter .easy file")
-    np.add_argument("path"); np.add_argument("--force", action="store_true")
+    np.add_argument("path")
+    np.add_argument("--force", action="store_true")
     return p
 
 
@@ -1145,13 +1206,21 @@ def main(argv=None) -> int:
     if argv and argv[0] not in cmds and not argv[0].startswith("-"):
         argv = ["run"] + argv
     args = build_parser().parse_args(argv)
-    if args.command == "run": return handle_run(args)
-    if args.command == "compile": return handle_compile(args)
-    if args.command == "check": return handle_check(args)
-    if args.command == "repl": return run_repl()
-    if args.command == "commands": print(render_commands()); return 0
-    if args.command == "new": return handle_new(args)
-    build_parser().print_help(); return 1
+    if args.command == "run":
+        return handle_run(args)
+    if args.command == "compile":
+        return handle_compile(args)
+    if args.command == "check":
+        return handle_check(args)
+    if args.command == "repl":
+        return run_repl()
+    if args.command == "commands":
+        print(render_commands())
+        return 0
+    if args.command == "new":
+        return handle_new(args)
+    build_parser().print_help()
+    return 1
 
 
 if __name__ == "__main__":
