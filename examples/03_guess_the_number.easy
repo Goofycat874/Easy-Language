@@ -1,0 +1,17 @@
+# A complete game: input, loops, break, random
+let secret = random number 1 to 20
+let tries = 0
+say I'm thinking of a number between 1 and 20.
+
+repeat forever
+    ask number "Your guess?" into guess
+    tries += 1
+    if guess is secret then
+        say You got it in {tries} tries!
+        break
+    else if guess is less than secret then
+        say Too low
+    else
+        say Too high
+    stop
+stop

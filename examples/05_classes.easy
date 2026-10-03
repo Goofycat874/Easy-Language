@@ -1,0 +1,21 @@
+# Classes: `self` is automatic, and `my.` is a friendly way to say self.
+class Animal
+    function init(name, sound) then
+        my.name = name
+        my.sound = sound
+    stop
+
+    function speak() then
+        say {my.name} says {my.sound}!
+    stop
+stop
+
+class Dog extends Animal
+    function fetch_stick() then
+        say {my.name} brings back the stick
+    stop
+stop
+
+let rex = Dog("Rex", "woof")
+rex.speak()
+rex.fetch_stick()
