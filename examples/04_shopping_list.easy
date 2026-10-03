@@ -1,0 +1,22 @@
+# Lists and dictionaries
+let items = ["milk", "eggs"]
+add "bread" to items
+add "apples" to items
+remove "eggs" from items
+sort items
+
+say You need {length items} things:
+for each item in items
+    say  - {item}
+stop
+
+if items contains "milk" then
+    say Don't forget the milk!
+stop
+
+let prices = {"milk": 1.5, "bread": 2.25, "apples": 3}
+let total = 0
+for each item in items
+    total += prices[item]
+stop
+say Total: ${total:.2f}

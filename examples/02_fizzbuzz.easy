@@ -1,0 +1,12 @@
+# Loops, math and conditions that read like English
+for n from 1 to 15
+    if n % 15 is 0 then
+        say FizzBuzz
+    else if n % 3 is 0 then
+        say Fizz
+    else if n % 5 is 0 then
+        say Buzz
+    else
+        say {n}
+    stop
+stop

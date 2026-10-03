@@ -1,0 +1,16 @@
+# Easy compiles to Python, so ALL of Python is available when you need it.
+use statistics
+use Counter from collections
+
+let scores = [88, 92, 79, 92, 85]
+say Mean: {statistics.mean(scores)}
+say Median: {statistics.median(scores)}
+say Most common: {Counter(scores).most_common(1)}
+
+python print("one-off raw Python:", [x * x for x in range(5)])
+
+check then
+    assert statistics.mean(scores) is greater than 100, "scores too low!"
+error e then
+    say Caught: {e}
+stop

@@ -1,0 +1,4 @@
+# Your first Easy program
+ask "What's your name?" into name
+say Hello, {name}! Nice to meet you.
+say It is {currenttime} on {currentdate}.

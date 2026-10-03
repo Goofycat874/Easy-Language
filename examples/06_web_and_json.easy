@@ -1,0 +1,9 @@
+# Talk to the internet: fetchjson downloads and parses JSON for you
+let post = fetchjson "https://jsonplaceholder.typicode.com/posts/1"
+say Title: {post["title"]}
+say Written by user {post["userId"]}
+
+use json
+writefile file post.json text saved
+say Saved. Pretty JSON:
+say {tojson post}
